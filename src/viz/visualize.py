@@ -98,6 +98,13 @@ def draw_projected_boxes_2d(
         for start, end in connections:
             cv2.line(img, tuple(pts_img[start]), tuple(pts_img[end]), color, 2)
 
+        # Draw contact point (green dot) at the bottom center face (matches user reference style)
+        bottom_center_lidar = np.array([[box[0], box[1], box[2] - box[5] / 2.0]])
+        bottom_center_img, bottom_center_depth = calib.lidar_to_img(bottom_center_lidar)
+        if bottom_center_depth[0] > 0.1:
+            u_c, v_c = bottom_center_img[0].astype(int)
+            cv2.circle(img, (u_c, v_c), 5, (0, 255, 0), -1)
+
         # Annotate
         label = ""
         if track_ids is not None and idx < len(track_ids):
