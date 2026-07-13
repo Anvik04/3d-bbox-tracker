@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+
+# Project checkpoints & data ignores
+checkpoints/
+data/raw/
+outputs/

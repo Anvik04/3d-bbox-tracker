@@ -1,0 +1,37 @@
+[project]
+name = "3d-bbox-tracker"
+version = "0.1.0"
+description = "3D Bounding Boxes for Moving Objects (Camera+LiDAR Fusion)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "torch",
+    "scipy",
+    "pyyaml",
+    "pillow",
+    "opencv-python-headless",
+    "matplotlib",
+    "open3d",
+    "shapely"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "black",
+]
+
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I"]
+ignore = []
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
