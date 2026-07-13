@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from src.tracking.kalman_3d import Kalman3D
 from src.models.detector import bev_iou_numpy
+from src.tracking.kalman_3d import Kalman3D
 
 
 class Track:
@@ -47,7 +47,15 @@ class Track:
         Returns bbox_3d: [x, y, z, l, w, h, yaw] and velocity: [vx, vy, vz].
         """
         pos, yaw, vel = self.kf.get_state()
-        bbox_3d = [pos[0], pos[1], pos[2], self.dims[0], self.dims[1], self.dims[2], yaw]
+        bbox_3d = [
+            pos[0],
+            pos[1],
+            pos[2],
+            self.dims[0],
+            self.dims[1],
+            self.dims[2],
+            yaw,
+        ]
         return bbox_3d, vel
 
 
@@ -95,7 +103,9 @@ class AB3DMOTTracker:
 
                     # Fallback to center distance if IoU is near zero
                     if iou < 0.01:
-                        dist = np.linalg.norm(np.array(track_bbox[:2]) - np.array(det[:2]))
+                        dist = np.linalg.norm(
+                            np.array(track_bbox[:2]) - np.array(det[:2])
+                        )
                         # Limit distance to reasonable range (e.g. 4.0 meters)
                         cost = 1.0 + (dist / 4.0)
 

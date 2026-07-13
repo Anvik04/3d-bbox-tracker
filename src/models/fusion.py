@@ -71,10 +71,14 @@ class CalibratedFusion(nn.Module):
         # 2. Extract calibration matrices and move to device
         P2 = torch.tensor(calib.P2, dtype=torch.float32, device=device)  # (3, 4)
         R0 = torch.tensor(calib.R0_rect, dtype=torch.float32, device=device)  # (4, 4)
-        Tr = torch.tensor(calib.Tr_velo_to_cam, dtype=torch.float32, device=device)  # (4, 4)
+        Tr = torch.tensor(
+            calib.Tr_velo_to_cam, dtype=torch.float32, device=device
+        )  # (4, 4)
 
         # 3. Project points: pts_lidar -> pts_cam
-        pts_hom = torch.cat([pts_lidar, torch.ones((num_pts, 1), device=device)], dim=1)  # (M, 4)
+        pts_hom = torch.cat(
+            [pts_lidar, torch.ones((num_pts, 1), device=device)], dim=1
+        )  # (M, 4)
         T_velo_to_cam_rect = R0 @ Tr  # (4, 4)
         pts_cam = pts_hom @ T_velo_to_cam_rect.t()  # (M, 4)
 

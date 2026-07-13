@@ -1,11 +1,13 @@
 import os
-import torch
+
 import numpy as np
+import torch
 from PIL import Image
+
 from src.data.kitti_dataset import KITTIDataset
+from src.eval.metrics import calculate_ap, evaluate_tracking_mota
 from src.models.detector import CameraLiDARDetector
 from src.tracking.tracker import AB3DMOTTracker
-from src.eval.metrics import calculate_ap, evaluate_tracking_mota
 from src.viz.visualize import draw_projected_boxes_2d, draw_scene_3d
 
 
@@ -19,7 +21,9 @@ def test_end_to_end_pipeline():
 
     # 2. Model & Tracker
     detector = CameraLiDARDetector()
-    checkpoint_path = os.path.abspath(os.path.join(test_dir, "..", "checkpoints", "detector.pt"))
+    checkpoint_path = os.path.abspath(
+        os.path.join(test_dir, "..", "checkpoints", "detector.pt")
+    )
     if os.path.exists(checkpoint_path):
         checkpoint = torch.load(checkpoint_path, map_location="cpu")
         detector.load_state_dict(checkpoint["model_state_dict"])
@@ -41,7 +45,6 @@ def test_end_to_end_pipeline():
         image = sample["image"]
         calib = sample["calib"]
         gt_boxes = sample["gt_boxes_3d"].numpy()
-        gt_names = sample["gt_names"]
 
         # Run forward pass
         with torch.no_grad():
@@ -83,9 +86,7 @@ def test_end_to_end_pipeline():
 
     # 4. Metrics Evaluation
     # Tracking MOTA
-    tracking_res = evaluate_tracking_mota(
-        track_history, gt_history, iou_threshold=0.01
-    )
+    tracking_res = evaluate_tracking_mota(track_history, gt_history, iou_threshold=0.01)
     assert "mota" in tracking_res
     assert tracking_res["total_gt"] == 20  # 10 frames * 2 cars
 
@@ -110,9 +111,7 @@ def test_end_to_end_pipeline():
 
         # Save Projected 2D Image overlay
         img_pil = Image.fromarray(
-            (dataset[0]["image"].permute(1, 2, 0).numpy() * 255.0).astype(
-                np.uint8
-            )
+            (dataset[0]["image"].permute(1, 2, 0).numpy() * 255.0).astype(np.uint8)
         )
         img_viz = draw_projected_boxes_2d(
             img_pil,

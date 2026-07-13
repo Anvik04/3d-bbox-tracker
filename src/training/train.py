@@ -1,5 +1,6 @@
 import os
 import sys
+
 import torch
 import torch.optim as optim
 
@@ -51,9 +52,7 @@ def main():
             cls_logits, reg_preds = model(points, image, calib)
 
             # Compute loss
-            loss, cls_loss, reg_loss = criterion(
-                cls_logits, reg_preds, gt_boxes_3d
-            )
+            loss, cls_loss, reg_loss = criterion(cls_logits, reg_preds, gt_boxes_3d)
 
             # Backward and optimize
             loss.backward()

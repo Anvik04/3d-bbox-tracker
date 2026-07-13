@@ -1,0 +1,14 @@
+numpy
+torch
+scipy
+pyyaml
+pillow
+opencv-python-headless
+matplotlib
+open3d
+shapely
+
+[dev]
+pytest
+ruff
+black

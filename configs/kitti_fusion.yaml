@@ -1,0 +1,28 @@
+# Configuration for Camera-LiDAR 3D Object Detection and Tracking
+
+dataset:
+  name: "synthetic_kitti"
+  x_range: [0.0, 48.0]
+  y_range: [-16.0, 16.0]
+  z_range: [-3.0, 1.0]
+
+model:
+  voxel_size: [0.25, 0.25]
+  max_points_per_pillar: 20
+  pillar_out_channels: 64
+  image_features_channels: 32
+  
+  # Mean dimensions of a Car box (height, width, length) in meters
+  car_mean_dims: [1.5, 1.6, 4.0]
+
+tracker:
+  max_age: 3      # Maximum missed frames before death
+  min_hits: 2     # Consecutive detections needed for birth
+  iou_threshold: 0.1
+  dt: 0.1         # Sample time between frames (10Hz)
+
+training:
+  lr: 0.001
+  batch_size: 1
+  epochs: 15
+  weight_decay: 0.0001

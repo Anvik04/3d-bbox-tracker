@@ -1,12 +1,12 @@
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 from shapely.geometry import Polygon
 
-from src.models.pillar_encoder import PillarEncoder
-from src.models.image_backbone import ImageBackbone
-from src.models.fusion import CalibratedFusion
 from src.models.detection_head import DetectionHead
+from src.models.fusion import CalibratedFusion
+from src.models.image_backbone import ImageBackbone
+from src.models.pillar_encoder import PillarEncoder
 
 
 def box2d_to_polygon(x, y, l, w, yaw):
@@ -168,7 +168,6 @@ class CameraLiDARDetector(nn.Module):
             scores: list of float scores
             classes: list of int class IDs
         """
-        device = cls_logits.device
         scores_map = torch.sigmoid(cls_logits[0, 0])  # (H_bev, W_bev)
 
         # Filter by threshold
@@ -222,9 +221,7 @@ class CameraLiDARDetector(nn.Module):
         decoded_boxes = np.array(decoded_boxes)
 
         # Run NMS
-        keep_idxs = rotated_nms(
-            decoded_boxes, scores, iou_threshold=nms_threshold
-        )
+        keep_idxs = rotated_nms(decoded_boxes, scores, iou_threshold=nms_threshold)
 
         if len(keep_idxs) == 0:
             return [], [], []

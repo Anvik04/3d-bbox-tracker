@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 
@@ -23,7 +22,9 @@ class ImageBackbone(nn.Module):
         self.relu3 = nn.ReLU()
 
         # Final refinement block (keeps resolution same)
-        self.conv4 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        self.conv4 = nn.Conv2d(
+            out_channels, out_channels, kernel_size=3, stride=1, padding=1
+        )
         self.bn4 = nn.BatchNorm2d(out_channels)
         self.relu4 = nn.ReLU()
 

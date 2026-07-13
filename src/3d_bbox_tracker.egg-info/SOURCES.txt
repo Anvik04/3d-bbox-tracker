@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/3d_bbox_tracker.egg-info/PKG-INFO
+src/3d_bbox_tracker.egg-info/SOURCES.txt
+src/3d_bbox_tracker.egg-info/dependency_links.txt
+src/3d_bbox_tracker.egg-info/requires.txt
+src/3d_bbox_tracker.egg-info/top_level.txt
+src/data/calib.py
+src/data/synth_fixtures.py
+tests/test_calib.py

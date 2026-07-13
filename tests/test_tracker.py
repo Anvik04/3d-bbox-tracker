@@ -1,4 +1,5 @@
 import numpy as np
+
 from src.tracking.tracker import AB3DMOTTracker
 
 

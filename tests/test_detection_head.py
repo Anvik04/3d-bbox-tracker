@@ -1,6 +1,8 @@
 import os
-import torch
+
 import numpy as np
+import torch
+
 from src.data.calib import Calibration
 from src.data.synth_fixtures import CALIB_TEXT
 from src.models.detector import CameraLiDARDetector

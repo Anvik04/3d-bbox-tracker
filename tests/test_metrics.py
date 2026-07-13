@@ -1,5 +1,6 @@
 import numpy as np
-from src.eval.metrics import iou_3d, calculate_ap, evaluate_tracking_mota
+
+from src.eval.metrics import calculate_ap, evaluate_tracking_mota, iou_3d
 
 
 def test_iou_3d():

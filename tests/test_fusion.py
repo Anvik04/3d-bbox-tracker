@@ -1,6 +1,7 @@
 import os
+
 import torch
-import numpy as np
+
 from src.data.calib import Calibration
 from src.data.synth_fixtures import CALIB_TEXT
 from src.models.fusion import CalibratedFusion

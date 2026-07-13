@@ -1,7 +1,8 @@
 import os
 import sys
-import torch
+
 import numpy as np
+import torch
 from PIL import Image
 
 # Ensure project root is in Python path
@@ -152,9 +153,7 @@ def main():
         viz_3d_path = os.path.join(viz_3d_dir, f"{file_id}.png")
         draw_scene_3d(points, viz_boxes, track_ids=track_ids, output_path=viz_3d_path)
 
-        print(
-            f"Processed frame {file_id}: found {len(active_tracks)} active tracks"
-        )
+        print(f"Processed frame {file_id}: found {len(active_tracks)} active tracks")
 
     print("Inference completed!")
     print(f"KITTI label predictions dumped in {predict_dir}")

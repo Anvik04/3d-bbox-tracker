@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -94,9 +95,11 @@ def generate_all_fixtures(output_dir, num_frames=10):
 
             # Rotate to LiDAR coordinates
             rot_mat = np.array(
-                [[np.cos(cyaw), -np.sin(cyaw), 0],
-                 [np.sin(cyaw), np.cos(cyaw), 0],
-                 [0, 0, 1]]
+                [
+                    [np.cos(cyaw), -np.sin(cyaw), 0],
+                    [np.sin(cyaw), np.cos(cyaw), 0],
+                    [0, 0, 1],
+                ]
             )
             local_pts = np.column_stack((lx, ly, lz))
             rot_pts = local_pts @ rot_mat.T
@@ -135,16 +138,18 @@ def generate_all_fixtures(output_dir, num_frames=10):
             cyaw = car["yaw"]
 
             # Compute box corner coordinates in LiDAR frame to project them
-            dx = [l/2, l/2, -l/2, -l/2, l/2, l/2, -l/2, -l/2]
-            dy = [w/2, -w/2, -w/2, w/2, w/2, -w/2, -w/2, w/2]
-            dz = [h/2, h/2, h/2, h/2, -h/2, -h/2, -h/2, -h/2]
+            dx = [l / 2, l / 2, -l / 2, -l / 2, l / 2, l / 2, -l / 2, -l / 2]
+            dy = [w / 2, -w / 2, -w / 2, w / 2, w / 2, -w / 2, -w / 2, w / 2]
+            dz = [h / 2, h / 2, h / 2, h / 2, -h / 2, -h / 2, -h / 2, -h / 2]
 
             corners_lidar = np.column_stack((dx, dy, dz))
             # Rotate
             rot_mat = np.array(
-                [[np.cos(cyaw), -np.sin(cyaw), 0],
-                 [np.sin(cyaw), np.cos(cyaw), 0],
-                 [0, 0, 1]]
+                [
+                    [np.cos(cyaw), -np.sin(cyaw), 0],
+                    [np.sin(cyaw), np.cos(cyaw), 0],
+                    [0, 0, 1],
+                ]
             )
             corners_lidar = corners_lidar @ rot_mat.T
             corners_lidar[:, 0] += cx
@@ -178,8 +183,10 @@ def generate_all_fixtures(output_dir, num_frames=10):
             # Note: in KITTI label, the location x,y,z is the center of the bottom face of the 3D box, in camera coordinate system!
             # Let's verify: Yes, KITTI location (x, y, z) is the 3D box center of the bottom face.
             # So bottom face center in LiDAR: (cx, cy, cz - h/2)
-            bottom_center_lidar = np.array([[cx, cy, cz - h/2, 1.0]])
-            bottom_center_cam = (bottom_center_lidar @ (R0_rect @ Tr_velo_to_cam).T)[0, :3]
+            bottom_center_lidar = np.array([[cx, cy, cz - h / 2, 1.0]])
+            bottom_center_cam = (bottom_center_lidar @ (R0_rect @ Tr_velo_to_cam).T)[
+                0, :3
+            ]
 
             # ry (yaw in camera coords):
             # KITTI ry is the rotation around the camera Y-axis.

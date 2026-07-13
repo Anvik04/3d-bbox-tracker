@@ -97,15 +97,14 @@ class CameraLiDARLoss(nn.Module):
         # Classification loss: Focal Loss
         pred_probs = torch.sigmoid(cls_logits[0, 0])
         eps = 1e-8
-        focal_loss = (
-            -self.alpha
-            * ((1 - pred_probs) ** self.gamma)
-            * cls_target
-            * torch.log(pred_probs + eps)
-            - (1 - self.alpha)
-            * (pred_probs ** self.gamma)
-            * (1 - cls_target)
-            * torch.log(1 - pred_probs + eps)
+        focal_loss = -self.alpha * (
+            (1 - pred_probs) ** self.gamma
+        ) * cls_target * torch.log(pred_probs + eps) - (1 - self.alpha) * (
+            pred_probs**self.gamma
+        ) * (
+            1 - cls_target
+        ) * torch.log(
+            1 - pred_probs + eps
         )
         cls_loss = focal_loss.mean()
 

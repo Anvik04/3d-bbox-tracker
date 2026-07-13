@@ -57,8 +57,12 @@ class PillarEncoder(nn.Module):
             return torch.zeros((1, self.out_channels, self.ny, self.nx), device=device)
 
         # 2. Compute voxel coordinates
-        coords_x = torch.clamp(((pts[:, 0] - self.x_min) / self.vx).long(), 0, self.nx - 1)
-        coords_y = torch.clamp(((pts[:, 1] - self.y_min) / self.vy).long(), 0, self.ny - 1)
+        coords_x = torch.clamp(
+            ((pts[:, 0] - self.x_min) / self.vx).long(), 0, self.nx - 1
+        )
+        coords_y = torch.clamp(
+            ((pts[:, 1] - self.y_min) / self.vy).long(), 0, self.ny - 1
+        )
         pillar_idx = coords_y * self.nx + coords_x
 
         # 3. Vectorized grouping of points to pillars
@@ -73,7 +77,9 @@ class PillarEncoder(nn.Module):
         # Calculate local indices (0 to max_pts-1) for each point in its pillar
         ranks = torch.arange(len(pts), device=device)
         # Find start indices of each unique pillar group
-        change_mask = torch.cat([torch.tensor([True], device=device), sorted_inv[1:] != sorted_inv[:-1]])
+        change_mask = torch.cat(
+            [torch.tensor([True], device=device), sorted_inv[1:] != sorted_inv[:-1]]
+        )
         group_starts = ranks[change_mask]
         group_starts_expanded = torch.gather(group_starts, 0, sorted_inv)
         local_idx = ranks - group_starts_expanded
@@ -89,11 +95,17 @@ class PillarEncoder(nn.Module):
         # 4. Compute cluster features (x-xc, y-yc, z-zc)
         # Sum coordinate values for each unique pillar
         counts = torch.zeros(len(unique_pillars), device=device)
-        counts.scatter_add_(0, sorted_inv_filtered, torch.ones_like(sorted_inv_filtered, dtype=torch.float32))
+        counts.scatter_add_(
+            0,
+            sorted_inv_filtered,
+            torch.ones_like(sorted_inv_filtered, dtype=torch.float32),
+        )
         counts = torch.clamp(counts, min=1.0)  # avoid div by zero
 
         sums = torch.zeros((len(unique_pillars), 3), device=device)
-        sums.scatter_add_(0, sorted_inv_filtered.unsqueeze(1).repeat(1, 3), pts_filtered[:, :3])
+        sums.scatter_add_(
+            0, sorted_inv_filtered.unsqueeze(1).repeat(1, 3), pts_filtered[:, :3]
+        )
         means = sums / counts.unsqueeze(1)
 
         # 5. Compute center features (x-xp, y-yp)
@@ -103,12 +115,16 @@ class PillarEncoder(nn.Module):
         # Construct final 9-dimensional features
         f_pts = pts_filtered  # [x, y, z, intensity]
         f_cluster = pts_filtered[:, :3] - means[sorted_inv_filtered]
-        f_center = torch.stack([pts_filtered[:, 0] - xp, pts_filtered[:, 1] - yp], dim=1)
+        f_center = torch.stack(
+            [pts_filtered[:, 0] - xp, pts_filtered[:, 1] - yp], dim=1
+        )
 
         features = torch.cat([f_pts, f_cluster, f_center], dim=1)
 
         # 6. Scatter features into dense (num_unique, max_pts, 9)
-        pillar_features = torch.zeros((len(unique_pillars), self.max_pts, 9), device=device)
+        pillar_features = torch.zeros(
+            (len(unique_pillars), self.max_pts, 9), device=device
+        )
         pillar_features[sorted_inv_filtered, local_idx_filtered] = features
 
         # 7. Apply PointNet-style network

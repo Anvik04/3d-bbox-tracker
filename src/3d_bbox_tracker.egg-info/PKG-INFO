@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: 3d-bbox-tracker
+Version: 0.1.0
+Summary: 3D Bounding Boxes for Moving Objects (Camera+LiDAR Fusion)
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: torch
+Requires-Dist: scipy
+Requires-Dist: pyyaml
+Requires-Dist: pillow
+Requires-Dist: opencv-python-headless
+Requires-Dist: matplotlib
+Requires-Dist: open3d
+Requires-Dist: shapely
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: black; extra == "dev"
+
+# 3D Bounding Box Tracker for Moving Objects (Camera + LiDAR Fusion)
+
+A PyTorch/NumPy pipeline for 3D object detection and tracking in KITTI data format using Camera + LiDAR fusion.

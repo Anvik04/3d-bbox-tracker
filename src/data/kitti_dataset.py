@@ -1,8 +1,9 @@
 import os
+
 import numpy as np
 import torch
-from torch.utils.data import Dataset
 from PIL import Image
+from torch.utils.data import Dataset
 
 from src.data.calib import Calibration
 
@@ -24,7 +25,11 @@ class KITTIDataset(Dataset):
 
         # Get list of file prefixes
         self.file_ids = sorted(
-            [os.path.splitext(f)[0] for f in os.listdir(self.image_dir) if f.endswith(".png")]
+            [
+                os.path.splitext(f)[0]
+                for f in os.listdir(self.image_dir)
+                if f.endswith(".png")
+            ]
         )
 
     def __len__(self):
@@ -42,7 +47,9 @@ class KITTIDataset(Dataset):
         img_path = os.path.join(self.image_dir, f"{file_id}.png")
         img = Image.open(img_path).convert("RGB")
         # Convert image to float32 tensor in range [0, 1], shape (3, H, W)
-        img_tensor = torch.tensor(np.array(img), dtype=torch.float32).permute(2, 0, 1) / 255.0
+        img_tensor = (
+            torch.tensor(np.array(img), dtype=torch.float32).permute(2, 0, 1) / 255.0
+        )
 
         # 3. Load calibration
         calib_path = os.path.join(self.calib_dir, f"{file_id}.txt")
@@ -89,12 +96,18 @@ class KITTIDataset(Dataset):
                     # Difference of projected points gives the heading direction vector in LiDAR
                     origin_lidar = calib.cam_to_lidar(np.array([[0.0, 0.0, 0.0]]))
                     heading_lidar_raw = calib.cam_to_lidar(heading_cam) - origin_lidar
-                    yaw_lidar = np.arctan2(heading_lidar_raw[0, 1], heading_lidar_raw[0, 0])
+                    yaw_lidar = np.arctan2(
+                        heading_lidar_raw[0, 1], heading_lidar_raw[0, 0]
+                    )
 
                     gt_boxes.append([cx, cy, cz, l, w, h, yaw_lidar])
                     gt_names.append(obj_type)
 
-        gt_boxes = np.array(gt_boxes, dtype=np.float32) if len(gt_boxes) > 0 else np.zeros((0, 7), dtype=np.float32)
+        gt_boxes = (
+            np.array(gt_boxes, dtype=np.float32)
+            if len(gt_boxes) > 0
+            else np.zeros((0, 7), dtype=np.float32)
+        )
 
         sample = {
             "points": torch.tensor(pts_lidar, dtype=torch.float32),
