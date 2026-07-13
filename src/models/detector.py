@@ -180,9 +180,19 @@ class CameraLiDARDetector(nn.Module):
 
         # Get values
         scores = scores_map[mask].detach().cpu().numpy()
-        reg_vals = reg_preds[0, :, y_idxs, x_idxs].detach().cpu().numpy()  # (8, M)
         y_idxs = y_idxs.cpu().numpy()
         x_idxs = x_idxs.cpu().numpy()
+
+        # Limit to top K detections to prevent NMS performance explosion
+        max_num_dets = 100
+        if len(scores) > max_num_dets:
+            top_k_indices = np.argsort(scores)[::-1][:max_num_dets]
+            scores = scores[top_k_indices]
+            y_idxs = y_idxs[top_k_indices]
+            x_idxs = x_idxs[top_k_indices]
+
+        # Extract regression values for the selected detections
+        reg_vals = reg_preds[0, :, y_idxs, x_idxs].detach().cpu().numpy()  # (8, M)
 
         decoded_boxes = []
         for i in range(len(x_idxs)):
