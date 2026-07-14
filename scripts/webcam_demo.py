@@ -70,6 +70,14 @@ def main():
         "sports ball": [0.25, 0.25, 0.25],
         "bicycle": [1.6, 0.5, 1.0],
         "motorcycle": [1.8, 0.6, 1.1],
+        "remote": [0.2, 0.15, 0.1],  # Charger/remote size parameters
+    }
+
+    # Map COCO category names to custom display names (e.g. mapping "remote" to "charger")
+    CLASS_RENAME_OVERRIDES = {
+        "remote": "CHARGER",
+        "cell phone": "PHONE",
+        "sports ball": "BALL",
     }
 
     prev_gray = None
@@ -175,6 +183,7 @@ def main():
             class_name = (
                 COCO_CLASSES[class_id] if class_id < len(COCO_CLASSES) else "object"
             )
+            class_name = CLASS_RENAME_OVERRIDES.get(class_name, class_name)
             class_name_upper = class_name.upper()
 
             # Compute 8 corners in camera space (X: right, Y: down, Z: forward)
