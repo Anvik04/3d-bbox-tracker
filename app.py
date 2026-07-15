@@ -2,7 +2,7 @@ import gradio as gr
 import subprocess
 import os
 
-def process_video(input_video, camera_height, tilt_deg, fov_deg):
+def process_video(input_video):
     if not input_video:
         return None
     
@@ -14,10 +14,7 @@ def process_video(input_video, camera_height, tilt_deg, fov_deg):
     cmd = [
         sys.executable, "scripts/run_mono_demo.py",
         "--source", input_video,
-        "--save-video", output_video,
-        "--camera-height", str(camera_height),
-        "--tilt-deg", str(tilt_deg),
-        "--fov-deg", str(fov_deg)
+        "--save-video", output_video
     ]
     
     env = os.environ.copy()
@@ -43,17 +40,13 @@ with gr.Blocks(title="3D BBox Tracker Demo") as demo:
     with gr.Row():
         with gr.Column():
             video_in = gr.Video(label="Input Video")
-            with gr.Accordion("Camera Calibration", open=True):
-                camera_height = gr.Slider(minimum=0.1, maximum=100.0, value=1.6, step=0.1, label="Camera Height (meters)")
-                tilt_deg = gr.Slider(minimum=0.0, maximum=90.0, value=10.0, step=1.0, label="Camera Tilt (degrees)")
-                fov_deg = gr.Slider(minimum=30.0, maximum=120.0, value=70.0, step=1.0, label="Camera FOV (degrees)")
             process_btn = gr.Button("Process Video", variant="primary")
         with gr.Column():
             video_out = gr.Video(label="Processed Video")
             
     process_btn.click(
         fn=process_video, 
-        inputs=[video_in, camera_height, tilt_deg, fov_deg], 
+        inputs=[video_in], 
         outputs=video_out
     )
 
