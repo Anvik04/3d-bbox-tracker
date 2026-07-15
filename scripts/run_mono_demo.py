@@ -104,6 +104,10 @@ def main() -> None:
             box3d = track["bbox_3d"]
             track_id = track["track_id"]
             velocity = np.asarray(track.get("velocity", [0.0, 0.0, 0.0]), dtype=float)
+            
+            if tilt_deg > 45.0 and np.linalg.norm(velocity[:2]) > 0.1:
+                box3d[6] = math.atan2(velocity[1], velocity[0])
+                
             camera_params = {
                 "focal_px": focal_px,
                 "principal_point": principal_point,

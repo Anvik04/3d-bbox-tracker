@@ -53,7 +53,13 @@ class MonocularLifter:
         self.tilt_rad = math.radians(self.tilt_deg)
 
     def lift(self, detection2d: Detection2D) -> Box3D:
-        px, py = detection2d.ground_point
+        if self.tilt_deg > 45.0:
+            x1, y1, x2, y2 = detection2d.bbox_xyxy
+            px = (x1 + x2) / 2.0
+            py = (y1 + y2) / 2.0
+        else:
+            px, py = detection2d.ground_point
+
         cx, cy = self.principal_point
         # Real pinhole/flat-ground projection:
         # distance = camera_height / tan(tilt_angle + atan((pixel_y - principal_point_y) / focal_px))
@@ -67,6 +73,7 @@ class MonocularLifter:
         l, w, h = self.DIM_PRIORS.get(detection2d.class_name.lower(), (4.0, 1.8, 1.5))
         # Match the existing tracker interface: [x, y, z, l, w, h, yaw]
         yaw = 0.0
+            
         return Box3D(x=x, y=y, z=z, l=l, w=w, h=h, yaw=yaw)
 
     def to_bbox_3d(self, detection2d: Detection2D) -> list[float]:
