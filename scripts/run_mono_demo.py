@@ -29,6 +29,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source", default="0", help="Webcam index or video path")
     parser.add_argument("--config", default="configs/mono_camera.yaml")
     parser.add_argument("--save-video", default=None, help="Optional output video path")
+    parser.add_argument("--camera-height", type=float, default=None, help="Override camera height in meters")
+    parser.add_argument("--tilt-deg", type=float, default=None, help="Override camera tilt in degrees")
+    parser.add_argument("--fov-deg", type=float, default=None, help="Override camera FOV in degrees")
     return parser
 
 
@@ -44,15 +47,28 @@ def main() -> None:
 
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 640
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 480
+    
     fov_deg = float(config.get("fov_deg", 70.0))
+    if args.fov_deg is not None:
+        fov_deg = args.fov_deg
+    
     focal_px = derive_focal_px(frame_width, fov_deg)
     principal_point = (
         float(frame_width / 2.0),
         float(frame_height / 2.0),
     )
+    
+    camera_height_m = float(config.get("camera_height_m", 1.6))
+    if args.camera_height is not None:
+        camera_height_m = args.camera_height
+        
+    tilt_deg = float(config.get("tilt_deg", 10.0))
+    if args.tilt_deg is not None:
+        tilt_deg = args.tilt_deg
+
     lifter = MonocularLifter(
-        camera_height_m=float(config.get("camera_height_m", 1.6)),
-        tilt_deg=float(config.get("tilt_deg", 10.0)),
+        camera_height_m=camera_height_m,
+        tilt_deg=tilt_deg,
         focal_px=focal_px,
         principal_point=principal_point,
     )
@@ -91,7 +107,7 @@ def main() -> None:
             camera_params = {
                 "focal_px": focal_px,
                 "principal_point": principal_point,
-                "camera_height_m": float(config.get("camera_height_m", 1.6)),
+                "camera_height_m": camera_height_m,
             }
             overlay = draw_3d_wireframe_cuboid(
                 overlay,
@@ -114,11 +130,12 @@ def main() -> None:
                 overlay[:h, :w] = cv2.addWeighted(overlay[:h, :w], 0.85, bev, 0.15, 0)
 
         cv2.putText(overlay, "Mono 3D Demo", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-        cv2.imshow("Mono 3D Demo", overlay)
         if writer is not None:
             writer.write(overlay)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+        else:
+            cv2.imshow("Mono 3D Demo", overlay)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
 
     if writer is not None:
         writer.release()
