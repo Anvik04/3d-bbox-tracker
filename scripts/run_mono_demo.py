@@ -1,6 +1,8 @@
 import argparse
 import math
 import os
+import sys
+import traceback
 from pathlib import Path
 from typing import Optional
 
@@ -143,6 +145,14 @@ def main() -> None:
                     break
     except Exception as e:
         print(f"Tracking interrupted or failed: {e}")
+        traceback.print_exc()
+        with open("outputs/error.log", "w") as f:
+            f.write(traceback.format_exc())
+        if writer is not None:
+            writer.release()
+        cap.release()
+        cv2.destroyAllWindows()
+        sys.exit(1)
     finally:
         if writer is not None:
             writer.release()
