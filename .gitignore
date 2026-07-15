@@ -27,3 +27,7 @@ wandb/
 # Project checkpoints & data ignores
 checkpoints/
 data/raw/
+
+# Build/package artifacts
+src/3d_bbox_tracker.egg-info/
+poetry.lock
