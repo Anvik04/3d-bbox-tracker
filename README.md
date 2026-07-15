@@ -2,6 +2,17 @@
 
 An end-to-end Python/PyTorch pipeline for 3D multi-object detection and tracking of moving objects, utilizing sensor fusion (Camera + LiDAR) in the KITTI data layout.
 
+## Quick Start: Real-Time Vehicle Detection Demo
+
+Run the monocular 3D vehicle detection/tracking demo with no LiDAR required (camera only):
+
+```bash
+python scripts/run_mono_demo.py --source 0
+python scripts/run_mono_demo.py --source path/to/video.mp4 --save-video outputs/mono_demo.mp4
+```
+
+Calibration note: edit [configs/mono_camera.yaml](configs/mono_camera.yaml) with your camera height and tilt before running.
+
 ## Architecture Overview
 
 ```
@@ -149,6 +160,8 @@ This repository now has an additive no-LiDAR inference path for real-time vehicl
 python scripts/run_mono_demo.py --source 0
 python scripts/run_mono_demo.py --source path/to/video.mp4 --save-video outputs/mono_demo.mp4
 ```
+
+Note: [scripts/webcam_demo.py](scripts/webcam_demo.py) is the earlier motion-based prototype and is not the current recommended entry point for the monocular vehicle-detection demo; use [scripts/run_mono_demo.py](scripts/run_mono_demo.py) instead.
 
 ### Calibration notes
 The mono configuration file at [configs/mono_camera.yaml](configs/mono_camera.yaml) expects:

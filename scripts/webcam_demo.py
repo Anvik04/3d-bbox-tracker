@@ -1,3 +1,4 @@
+# Earlier motion-based prototype; superseded by scripts/run_mono_demo.py.
 import os
 import sys
 
