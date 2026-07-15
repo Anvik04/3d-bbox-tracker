@@ -1,0 +1,8 @@
+# Example monocular camera calibration for the mono demo.
+# Measure camera_height_m with a tape measure from the ground plane to the optical center,
+# set tilt_deg by rough alignment of the camera to the scene, and use the webcam/phone
+# horizontal field of view spec (or a simple estimate) to derive the focal_px from frame width.
+camera_height_m: 1.6
+tilt_deg: 10.0
+fov_deg: 70.0
+principal_point: [0.5, 0.5]

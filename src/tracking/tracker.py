@@ -21,6 +21,7 @@ class Track:
         self.dims = bbox_3d[3:6]  # [l, w, h]
 
         self.kf = Kalman3D(pos, yaw, dt=dt)
+        self.centroids = []
 
         self.age = 1
         self.hits = 1
@@ -34,9 +35,17 @@ class Track:
 
     def update(self, bbox_3d, score):
         pos = bbox_3d[:3]
-        yaw = bbox_3d[6]
         self.dims = bbox_3d[3:6]
         self.score = score
+
+        self.centroids.append(pos[:2])
+        if len(self.centroids) > 8:
+            self.centroids = self.centroids[-8:]
+
+        if len(self.centroids) >= 3 and self.hits >= 3:
+            yaw = AB3DMOTTracker.estimate_yaw_from_heading(self.centroids, default_yaw=bbox_3d[6])
+        else:
+            yaw = bbox_3d[6]
 
         self.kf.update(pos, yaw)
         self.hits += 1
@@ -63,6 +72,21 @@ class AB3DMOTTracker:
     """
     3D Multi-Object Tracker based on 3D Kalman Filter and Hungarian Association.
     """
+
+    @staticmethod
+    def estimate_yaw_from_heading(centroids, default_yaw=0.0):
+        """Estimate a heading-based yaw from the last N centroids."""
+        if len(centroids) < 3:
+            return default_yaw
+        recent = np.asarray(centroids[-3:], dtype=float)
+        if len(recent) < 2:
+            return default_yaw
+        dx = recent[-1, 0] - recent[-2, 0]
+        dy = recent[-1, 1] - recent[-2, 1]
+        if np.linalg.norm([dx, dy]) < 1e-6:
+            return default_yaw
+        heading = np.arctan2(dy, dx)
+        return float(heading)
 
     def __init__(self, max_age=3, min_hits=2, iou_threshold=0.1, dt=0.1):
         self.max_age = max_age

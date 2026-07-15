@@ -3,6 +3,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
+
+def _project_box_to_image(box3d, camera_params):
+    x, y, z, l, w, h, yaw = box3d
+    focal_px = camera_params.get("focal_px", 600.0)
+    cx, cy = camera_params.get("principal_point", (320.0, 240.0))
+    camera_height_m = camera_params.get("camera_height_m", 1.6)
+    # Project a simple 3D box onto the image with a flat-ground assumption.
+    corners = []
+    for dx in (-l / 2.0, l / 2.0):
+        for dy in (-w / 2.0, w / 2.0):
+            for dz in (0.0, h):
+                corners.append((x + dx, y + dy, z + dz))
+    projected = []
+    for px, py, pz in corners:
+        # Forward camera coordinate convention: x -> right, y -> down, z -> forward
+        depth = max(1e-3, pz + camera_height_m)
+        u = cx + (px / depth) * focal_px
+        v = cy + (py / depth) * focal_px
+        projected.append((int(round(u)), int(round(v))))
+    return np.asarray(projected, dtype=int)
+
 try:
     import open3d as o3d
 
@@ -132,6 +153,43 @@ def draw_projected_boxes_2d(
             )
 
     return Image.fromarray(img)
+
+
+def draw_3d_wireframe_cuboid(frame, box3d, camera_params, track_id, distance=None, closing_speed=None):
+    """Draw a simple wireframe cuboid of a mono-lifted 3D box in the image."""
+    if isinstance(frame, Image.Image):
+        frame = np.array(frame)
+    img = frame.copy()
+    corners = _project_box_to_image(box3d, camera_params)
+    if corners.size == 0:
+        return img
+    connections = [(0, 1), (1, 3), (3, 2), (2, 0), (4, 5), (5, 7), (7, 6), (6, 4), (0, 4), (1, 5), (2, 6), (3, 7)]
+    for start, end in connections:
+        cv2.line(img, tuple(corners[start]), tuple(corners[end]), (0, 255, 0), 2)
+    label = f"ID {track_id}"
+    if distance is not None:
+        label += f" d={distance:.1f}m"
+    if closing_speed is not None:
+        label += f" v={closing_speed:.1f}m/s"
+    u, v = corners[0]
+    cv2.putText(img, label, (max(10, u), max(20, v)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+    return img
+
+
+def draw_bev_panel(tracks, size=(300, 300)):
+    """Draw a small top-down panel showing track positions and IDs as arrows."""
+    if not tracks:
+        return None
+    panel = np.zeros((size[1], size[0], 3), dtype=np.uint8)
+    H, W = panel.shape[:2]
+    for track in tracks:
+        bbox_3d = np.asarray(track.get("bbox_3d", [0.0, 0.0, 0.0, 4.0, 1.8, 1.5, 0.0]), dtype=float)
+        x, y = bbox_3d[0], bbox_3d[1]
+        px = int(np.clip((x + 12.0) / 24.0 * (W - 1), 0, W - 1))
+        py = int(np.clip((y + 12.0) / 24.0 * (H - 1), 0, H - 1))
+        cv2.circle(panel, (px, py), 4, (0, 255, 255), -1)
+        cv2.putText(panel, str(track.get("track_id", "?")), (px + 6, py - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+    return panel
 
 
 def draw_scene_3d(points, boxes, track_ids=None, output_path=None):

@@ -13,7 +13,8 @@ dependencies = [
     "opencv-python-headless",
     "matplotlib",
     "open3d",
-    "shapely"
+    "shapely",
+    "ultralytics"
 ]
 
 [project.optional-dependencies]

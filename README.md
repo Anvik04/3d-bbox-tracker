@@ -135,6 +135,28 @@ This command outputs:
 
 ---
 
+## Real-Time Monocular Vehicle Detection (No LiDAR)
+
+This repository now has an additive no-LiDAR inference path for real-time vehicle 3D perception from a webcam or video file. Instead of the existing Camera+LiDAR fusion model, it uses a COCO-pretrained YOLOv8n 2D detector, a simple monocular ground-plane lift step, and the existing 3D Kalman tracker to produce live 3D vehicle boxes.
+
+### How it differs from the fusion pipeline
+- The original path trains a Camera+LiDAR fusion detector on synthetic KITTI fixtures.
+- The new monocular path uses only RGB frames and a simple camera-height/tilt calibration to estimate a box in front of the camera.
+- It is intentionally lightweight and designed to run on CPU with a webcam or recorded video.
+
+### Run the demo
+```bash
+python scripts/run_mono_demo.py --source 0
+python scripts/run_mono_demo.py --source path/to/video.mp4 --save-video outputs/mono_demo.mp4
+```
+
+### Calibration notes
+The mono configuration file at [configs/mono_camera.yaml](configs/mono_camera.yaml) expects:
+- camera_height_m: the height of the camera center above the ground plane (measure with a tape measure)
+- tilt_deg: a rough camera tilt estimate relative to the ground plane
+- fov_deg: the webcam or phone horizontal field-of-view spec, used to derive a focal length from the frame width
+- principal_point: usually left at the image center unless you have a more precise calibration
+
 ## Swapping to Real Sensor Data (KITTI or nuScenes)
 
 This codebase has been architected to conform to standard KITTI layouts, making dataset upgrades direct:

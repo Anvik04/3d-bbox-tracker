@@ -14,8 +14,16 @@ env/
 
 # Testing
 .pytest_cache/
+*.pytest_cache/
+
+# Generated model / media artifacts
+*.pt
+*.pth
+*.mp4
+*.avi
+outputs/
+wandb/
 
 # Project checkpoints & data ignores
 checkpoints/
 data/raw/
-outputs/
