@@ -115,6 +115,7 @@ def main() -> None:
                     "focal_px": focal_px,
                     "principal_point": principal_point,
                     "camera_height_m": camera_height_m,
+                    "tilt_deg": tilt_deg,
                 }
                 overlay = draw_3d_wireframe_cuboid(
                     overlay,

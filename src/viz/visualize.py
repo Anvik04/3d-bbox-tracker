@@ -5,23 +5,49 @@ from PIL import Image
 
 
 def _project_box_to_image(box3d, camera_params):
+    import math
     x, y, z, l, w, h, yaw = box3d
     focal_px = camera_params.get("focal_px", 600.0)
     cx, cy = camera_params.get("principal_point", (320.0, 240.0))
     camera_height_m = camera_params.get("camera_height_m", 1.6)
-    # Project a simple 3D box onto the image with a flat-ground assumption.
-    corners = []
-    for dx in (-l / 2.0, l / 2.0):
-        for dy in (-w / 2.0, w / 2.0):
-            for dz in (0.0, h):
-                corners.append((x + dx, y + dy, z + dz))
+    tilt_deg = camera_params.get("tilt_deg", 10.0)
+    tilt_rad = math.radians(tilt_deg)
+    
+    # Generate 8 corners with yaw rotation
+    # Box center is x, y, z.
+    # dx is forward (l), dy is lateral (w), dz is up (h)
+    corners_local = [
+        (l/2, w/2, h), (l/2, -w/2, h), (-l/2, -w/2, h), (-l/2, w/2, h),
+        (l/2, w/2, 0), (l/2, -w/2, 0), (-l/2, -w/2, 0), (-l/2, w/2, 0)
+    ]
+    
+    cos_y = math.cos(yaw)
+    sin_y = math.sin(yaw)
+    
     projected = []
-    for px, py, pz in corners:
-        # Forward camera coordinate convention: x -> right, y -> down, z -> forward
-        depth = max(1e-3, pz + camera_height_m)
-        u = cx + (px / depth) * focal_px
-        v = cy + (py / depth) * focal_px
+    for dx, dy, dz in corners_local:
+        # Rotate around Z (up) axis
+        rot_x = dx * cos_y - dy * sin_y
+        rot_y = dx * sin_y + dy * cos_y
+        
+        # Absolute 3D world coordinates
+        X = x + rot_x
+        Y = y + rot_y
+        Z = z + dz
+        
+        # Prevent division by zero or behind-camera points
+        X = max(1e-3, X)
+        
+        # Inverse projection math (perfectly inverts MonocularLifter)
+        # u = cx - (Y * focal_px / X)
+        u = cx - (Y * focal_px / X)
+        
+        # angle_y = atan2(camera_height_m - Z, X) - tilt_rad
+        angle_y = math.atan2(camera_height_m - Z, X) - tilt_rad
+        v = cy + focal_px * math.tan(angle_y)
+        
         projected.append((int(round(u)), int(round(v))))
+        
     return np.asarray(projected, dtype=int)
 
 try:
