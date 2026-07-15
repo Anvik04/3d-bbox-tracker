@@ -130,8 +130,8 @@ class AB3DMOTTracker:
                         dist = np.linalg.norm(
                             np.array(track_bbox[:2]) - np.array(det[:2])
                         )
-                        # Limit distance to reasonable range (e.g. 4.0 meters)
-                        cost = 1.0 + (dist / 4.0)
+                        # Relax distance limit for high-tilt / distorted scale scenarios
+                        cost = 1.0 + (dist / 10.0)
 
                     cost_matrix[t_idx, d_idx] = cost
 
@@ -143,8 +143,8 @@ class AB3DMOTTracker:
 
             for r_idx, c_idx in zip(row_indices, col_indices):
                 cost = cost_matrix[r_idx, c_idx]
-                # If cost is too high (e.g. distance > 4.0m and iou=0, so cost > 2.0), reject match
-                if cost > 2.0:
+                # Reject match if cost is too high (e.g. distance > 20.0m and iou=0, so cost > 3.0)
+                if cost > 3.0:
                     continue
 
                 self.tracks[r_idx].update(detections[c_idx], scores[c_idx])
