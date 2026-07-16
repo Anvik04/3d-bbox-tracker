@@ -56,6 +56,10 @@ class MonocularLifter:
         l, w, h = self.DIM_PRIORS.get(detection2d.class_name.lower(), (3.6, 1.6, 1.3))
 
         if self.use_camera_space:
+            # Swap length and width for camera space to align vehicle width (e.g. 1.6m) horizontally
+            # and vehicle length (e.g. 3.6m) along the forward depth axis.
+            l_cam = w
+            w_cam = l
             x1, y1, x2, y2 = detection2d.bbox_xyxy
             h_box = max(y2 - y1, 1.0)
 
@@ -72,7 +76,7 @@ class MonocularLifter:
             y_c = ((v_center - cy) * z_c) / self.focal_px
 
             # Coordinate layout for Box3D to match tracking: x=X_c, y=Y_c, z=Z_c
-            return Box3D(x=x_c, y=y_c, z=z_c, l=l, w=w, h=h, yaw=0.0)
+            return Box3D(x=x_c, y=y_c, z=z_c, l=l_cam, w=w_cam, h=h, yaw=0.0)
 
         if self.tilt_deg > 45.0:
             x1, y1, x2, y2 = detection2d.bbox_xyxy
