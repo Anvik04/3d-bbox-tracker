@@ -31,10 +31,10 @@ class MonocularLifter:
     """Estimate a simple 3D box from a 2D vehicle detection using a flat ground plane."""
 
     DIM_PRIORS = {
-        "car": (4.0, 1.8, 1.5),
-        "bus": (10.5, 2.5, 3.2),
-        "truck": (6.0, 2.2, 2.4),
-        "motorcycle": (1.8, 0.8, 1.5),
+        "car": (3.6, 1.6, 1.3),
+        "bus": (9.0, 2.4, 2.8),
+        "truck": (5.0, 2.0, 2.0),
+        "motorcycle": (1.6, 0.7, 1.2),
     }
 
     def __init__(
@@ -70,6 +70,12 @@ class MonocularLifter:
         # Safeguard: prevent total angle from going to 0 or negative (approaching or crossing the horizon)
         angle_total = max(0.05, angle_total)
         ground_distance = self.camera_height_m / math.tan(angle_total)
+
+        # Adaptive perspective safeguard: clamp minimum distance based on camera height
+        # to prevent close-range infinite stretches
+        min_dist = self.camera_height_m * 1.5
+        ground_distance = max(min_dist, ground_distance)
+
         x = ground_distance
         y = -(px - cx) * ground_distance / self.focal_px
         # Match the existing tracker interface: [x, y, z, l, w, h, yaw]

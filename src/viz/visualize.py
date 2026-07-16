@@ -201,17 +201,17 @@ def draw_3d_wireframe_cuboid(
         return img
     connections = [
         (0, 1),
-        (1, 3),
-        (3, 2),
-        (2, 0),
+        (1, 2),
+        (2, 3),
+        (3, 0),  # top face
         (4, 5),
-        (5, 7),
-        (7, 6),
-        (6, 4),
+        (5, 6),
+        (6, 7),
+        (7, 4),  # bottom face
         (0, 4),
         (1, 5),
         (2, 6),
-        (3, 7),
+        (3, 7),  # vertical pillars
     ]
     for start, end in connections:
         cv2.line(img, tuple(corners[start]), tuple(corners[end]), (0, 255, 0), 2)
