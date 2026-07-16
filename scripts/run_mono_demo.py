@@ -83,7 +83,9 @@ def main() -> None:
         use_camera_space=True,
     )
     detector = VehicleDetector2D()
-    tracker = AB3DMOTTracker(max_age=5, min_hits=1, dt=0.1)
+    tracker = AB3DMOTTracker(
+        max_age=5, min_hits=1, dt=0.1, estimate_yaw=False, R_scale=12.0
+    )
 
     writer = None
     if save_video:

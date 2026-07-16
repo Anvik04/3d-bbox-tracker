@@ -10,17 +10,20 @@ class Track:
     Represents an individual tracked object.
     """
 
-    def __init__(self, track_id, bbox_3d, class_id, score, dt=0.1):
+    def __init__(
+        self, track_id, bbox_3d, class_id, score, dt=0.1, estimate_yaw=True, R_scale=1.0
+    ):
         self.track_id = track_id
         self.class_id = class_id
         self.score = score
+        self.estimate_yaw = estimate_yaw
 
         # bbox_3d: [x, y, z, l, w, h, yaw]
         pos = bbox_3d[:3]
         yaw = bbox_3d[6]
         self.dims = bbox_3d[3:6]  # [l, w, h]
 
-        self.kf = Kalman3D(pos, yaw, dt=dt)
+        self.kf = Kalman3D(pos, yaw, dt=dt, R_scale=R_scale)
         self.centroids = []
 
         self.age = 1
@@ -42,7 +45,7 @@ class Track:
         if len(self.centroids) > 8:
             self.centroids = self.centroids[-8:]
 
-        if len(self.centroids) >= 3 and self.hits >= 3:
+        if self.estimate_yaw and len(self.centroids) >= 3 and self.hits >= 3:
             yaw = AB3DMOTTracker.estimate_yaw_from_heading(
                 self.centroids, default_yaw=bbox_3d[6]
             )
@@ -90,11 +93,21 @@ class AB3DMOTTracker:
         heading = np.arctan2(dy, dx)
         return float(heading)
 
-    def __init__(self, max_age=3, min_hits=2, iou_threshold=0.1, dt=0.1):
+    def __init__(
+        self,
+        max_age=3,
+        min_hits=2,
+        iou_threshold=0.1,
+        dt=0.1,
+        estimate_yaw=True,
+        R_scale=1.0,
+    ):
         self.max_age = max_age
         self.min_hits = min_hits
         self.iou_threshold = iou_threshold
         self.dt = dt
+        self.estimate_yaw = estimate_yaw
+        self.R_scale = R_scale
 
         self.tracks = []
         self.next_track_id = 1
@@ -172,6 +185,8 @@ class AB3DMOTTracker:
                 class_id=classes[d_idx],
                 score=scores[d_idx],
                 dt=self.dt,
+                estimate_yaw=self.estimate_yaw,
+                R_scale=self.R_scale,
             )
             self.tracks.append(new_track)
             self.next_track_id += 1

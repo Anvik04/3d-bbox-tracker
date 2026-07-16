@@ -8,7 +8,7 @@ class Kalman3D:
     Measurement: [x, y, z, yaw]^T
     """
 
-    def __init__(self, init_pos, init_yaw, dt=0.1):
+    def __init__(self, init_pos, init_yaw, dt=0.1, R_scale=1.0):
         self.dt = dt
 
         # State vector: [x, y, z, yaw, vx, vy, vz]
@@ -38,9 +38,9 @@ class Kalman3D:
         self.Q = np.eye(7) * 0.01
         self.Q[4:, 4:] *= 0.1  # higher process noise for velocity
 
-        # Measurement noise covariance R
-        self.R = np.eye(4) * 0.1
-        self.R[3, 3] = 0.2  # higher measurement noise for yaw
+        # Measurement noise covariance R (scaled up for noisy monocular boxes)
+        self.R = np.eye(4) * 0.1 * R_scale
+        self.R[3, 3] = 0.2 * R_scale  # higher measurement noise for yaw
 
     def predict(self):
         """
