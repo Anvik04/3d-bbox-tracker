@@ -34,9 +34,13 @@ def test_monocular_lift_ground_point_sanity():
         assert box3d[4] > 1.0  # width prior
         assert box3d[5] > 1.0  # height prior
 
+
 def test_monocular_lift_low_tilt():
     lifter = MonocularLifter(
-        camera_height_m=2.0, tilt_deg=10.0, focal_px=600.0, principal_point=(320.0, 240.0)
+        camera_height_m=2.0,
+        tilt_deg=10.0,
+        focal_px=600.0,
+        principal_point=(320.0, 240.0),
     )
     det = Detection2D(
         bbox_xyxy=np.array([100.0, 100.0, 200.0, 200.0]),
@@ -48,9 +52,13 @@ def test_monocular_lift_low_tilt():
     # tilt < 45, so yaw is 0.0
     assert math.isclose(box3d.yaw, 0.0, abs_tol=1e-9)
 
+
 def test_monocular_lift_high_tilt():
     lifter = MonocularLifter(
-        camera_height_m=50.0, tilt_deg=90.0, focal_px=600.0, principal_point=(320.0, 240.0)
+        camera_height_m=50.0,
+        tilt_deg=90.0,
+        focal_px=600.0,
+        principal_point=(320.0, 240.0),
     )
     det = Detection2D(
         bbox_xyxy=np.array([100.0, 100.0, 200.0, 200.0]),

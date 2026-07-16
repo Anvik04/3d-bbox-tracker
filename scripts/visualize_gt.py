@@ -1,5 +1,6 @@
 import os
 import sys
+
 import numpy as np
 from PIL import Image
 
@@ -35,7 +36,11 @@ def main():
         # Let's specify red color (255, 0, 0)
         red_colors = [(255, 0, 0)] * len(gt_boxes)
         img_viz = draw_projected_boxes_2d(
-            img_pil, calib, gt_boxes, track_ids=list(range(1, len(gt_boxes) + 1)), colors=red_colors
+            img_pil,
+            calib,
+            gt_boxes,
+            track_ids=list(range(1, len(gt_boxes) + 1)),
+            colors=red_colors,
         )
 
         # Save visualization

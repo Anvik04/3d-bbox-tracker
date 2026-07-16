@@ -43,7 +43,9 @@ class Track:
             self.centroids = self.centroids[-8:]
 
         if len(self.centroids) >= 3 and self.hits >= 3:
-            yaw = AB3DMOTTracker.estimate_yaw_from_heading(self.centroids, default_yaw=bbox_3d[6])
+            yaw = AB3DMOTTracker.estimate_yaw_from_heading(
+                self.centroids, default_yaw=bbox_3d[6]
+            )
         else:
             yaw = bbox_3d[6]
 

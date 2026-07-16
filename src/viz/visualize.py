@@ -6,49 +6,57 @@ from PIL import Image
 
 def _project_box_to_image(box3d, camera_params):
     import math
+
     x, y, z, l, w, h, yaw = box3d
     focal_px = camera_params.get("focal_px", 600.0)
     cx, cy = camera_params.get("principal_point", (320.0, 240.0))
     camera_height_m = camera_params.get("camera_height_m", 1.6)
     tilt_deg = camera_params.get("tilt_deg", 10.0)
     tilt_rad = math.radians(tilt_deg)
-    
+
     # Generate 8 corners with yaw rotation
     # Box center is x, y, z.
     # dx is forward (l), dy is lateral (w), dz is up (h)
     corners_local = [
-        (l/2, w/2, h), (l/2, -w/2, h), (-l/2, -w/2, h), (-l/2, w/2, h),
-        (l/2, w/2, 0), (l/2, -w/2, 0), (-l/2, -w/2, 0), (-l/2, w/2, 0)
+        (l / 2, w / 2, h),
+        (l / 2, -w / 2, h),
+        (-l / 2, -w / 2, h),
+        (-l / 2, w / 2, h),
+        (l / 2, w / 2, 0),
+        (l / 2, -w / 2, 0),
+        (-l / 2, -w / 2, 0),
+        (-l / 2, w / 2, 0),
     ]
-    
+
     cos_y = math.cos(yaw)
     sin_y = math.sin(yaw)
-    
+
     projected = []
     for dx, dy, dz in corners_local:
         # Rotate around Z (up) axis
         rot_x = dx * cos_y - dy * sin_y
         rot_y = dx * sin_y + dy * cos_y
-        
+
         # Absolute 3D world coordinates
         X = x + rot_x
         Y = y + rot_y
         Z = z + dz
-        
+
         # Prevent division by zero or behind-camera points
-        X = max(1e-3, X)
-        
+        X = max(0.5, X)
+
         # Inverse projection math (perfectly inverts MonocularLifter)
         # u = cx - (Y * focal_px / X)
         u = cx - (Y * focal_px / X)
-        
+
         # angle_y = atan2(camera_height_m - Z, X) - tilt_rad
         angle_y = math.atan2(camera_height_m - Z, X) - tilt_rad
         v = cy + focal_px * math.tan(angle_y)
-        
+
         projected.append((int(round(u)), int(round(v))))
-        
+
     return np.asarray(projected, dtype=int)
+
 
 try:
     import open3d as o3d
@@ -181,7 +189,9 @@ def draw_projected_boxes_2d(
     return Image.fromarray(img)
 
 
-def draw_3d_wireframe_cuboid(frame, box3d, camera_params, track_id, distance=None, closing_speed=None):
+def draw_3d_wireframe_cuboid(
+    frame, box3d, camera_params, track_id, distance=None, closing_speed=None
+):
     """Draw a simple wireframe cuboid of a mono-lifted 3D box in the image."""
     if isinstance(frame, Image.Image):
         frame = np.array(frame)
@@ -189,7 +199,20 @@ def draw_3d_wireframe_cuboid(frame, box3d, camera_params, track_id, distance=Non
     corners = _project_box_to_image(box3d, camera_params)
     if corners.size == 0:
         return img
-    connections = [(0, 1), (1, 3), (3, 2), (2, 0), (4, 5), (5, 7), (7, 6), (6, 4), (0, 4), (1, 5), (2, 6), (3, 7)]
+    connections = [
+        (0, 1),
+        (1, 3),
+        (3, 2),
+        (2, 0),
+        (4, 5),
+        (5, 7),
+        (7, 6),
+        (6, 4),
+        (0, 4),
+        (1, 5),
+        (2, 6),
+        (3, 7),
+    ]
     for start, end in connections:
         cv2.line(img, tuple(corners[start]), tuple(corners[end]), (0, 255, 0), 2)
     label = f"ID {track_id}"
@@ -198,7 +221,16 @@ def draw_3d_wireframe_cuboid(frame, box3d, camera_params, track_id, distance=Non
     if closing_speed is not None:
         label += f" v={closing_speed:.1f}m/s"
     u, v = corners[0]
-    cv2.putText(img, label, (max(10, u), max(20, v)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(
+        img,
+        label,
+        (max(10, u), max(20, v)),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.5,
+        (255, 255, 255),
+        1,
+        cv2.LINE_AA,
+    )
     return img
 
 
@@ -209,12 +241,22 @@ def draw_bev_panel(tracks, size=(300, 300)):
     panel = np.zeros((size[1], size[0], 3), dtype=np.uint8)
     H, W = panel.shape[:2]
     for track in tracks:
-        bbox_3d = np.asarray(track.get("bbox_3d", [0.0, 0.0, 0.0, 4.0, 1.8, 1.5, 0.0]), dtype=float)
+        bbox_3d = np.asarray(
+            track.get("bbox_3d", [0.0, 0.0, 0.0, 4.0, 1.8, 1.5, 0.0]), dtype=float
+        )
         x, y = bbox_3d[0], bbox_3d[1]
         px = int(np.clip((x + 12.0) / 24.0 * (W - 1), 0, W - 1))
         py = int(np.clip((y + 12.0) / 24.0 * (H - 1), 0, H - 1))
         cv2.circle(panel, (px, py), 4, (0, 255, 255), -1)
-        cv2.putText(panel, str(track.get("track_id", "?")), (px + 6, py - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+        cv2.putText(
+            panel,
+            str(track.get("track_id", "?")),
+            (px + 6, py - 6),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.4,
+            (255, 255, 255),
+            1,
+        )
     return panel
 
 

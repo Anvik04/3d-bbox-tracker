@@ -1,10 +1,8 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Tuple
-
-import math
-import numpy as np
 
 from src.detection2d.yolo_detector import Detection2D
 
@@ -69,12 +67,14 @@ class MonocularLifter:
         # The pixel's horizontal offset sets the lateral position in the ground plane.
         angle_y = math.atan2(py - cy, self.focal_px)
         angle_total = self.tilt_rad + angle_y
+        # Safeguard: prevent total angle from going to 0 or negative (approaching or crossing the horizon)
+        angle_total = max(0.05, angle_total)
         ground_distance = self.camera_height_m / math.tan(angle_total)
         x = ground_distance
         y = -(px - cx) * ground_distance / self.focal_px
         # Match the existing tracker interface: [x, y, z, l, w, h, yaw]
         yaw = 0.0
-            
+
         return Box3D(x=x, y=y, z=z, l=l, w=w, h=h, yaw=yaw)
 
     def to_bbox_3d(self, detection2d: Detection2D) -> list[float]:
