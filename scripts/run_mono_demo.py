@@ -80,6 +80,7 @@ def main() -> None:
         tilt_deg=tilt_deg,
         focal_px=focal_px,
         principal_point=principal_point,
+        use_camera_space=True,
     )
     detector = VehicleDetector2D()
     tracker = AB3DMOTTracker(max_age=5, min_hits=1, dt=0.1)
@@ -127,6 +128,7 @@ def main() -> None:
                     "principal_point": principal_point,
                     "camera_height_m": camera_height_m,
                     "tilt_deg": tilt_deg,
+                    "use_camera_space": True,
                 }
                 overlay = draw_3d_wireframe_cuboid(
                     overlay,

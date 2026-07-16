@@ -10,6 +10,37 @@ def _project_box_to_image(box3d, camera_params):
     x, y, z, l, w, h, yaw = box3d
     focal_px = camera_params.get("focal_px", 600.0)
     cx, cy = camera_params.get("principal_point", (320.0, 240.0))
+    use_camera_space = camera_params.get("use_camera_space", False)
+
+    if use_camera_space:
+        # Generate 8 corners in camera space:
+        # X is right, Y is down, Z is forward
+        # Top face (Y = -h/2), Bottom face (Y = h/2)
+        dx = np.array([l / 2, l / 2, -l / 2, -l / 2, l / 2, l / 2, -l / 2, -l / 2])
+        dy = np.array([-h / 2, -h / 2, -h / 2, -h / 2, h / 2, h / 2, h / 2, h / 2])
+        dz = np.array([w / 2, -w / 2, -w / 2, w / 2, w / 2, -w / 2, -w / 2, w / 2])
+
+        corners_local = np.column_stack((dx, dy, dz))
+
+        # Rotate around Y (vertical) axis in camera frame
+        cos_y = math.cos(yaw)
+        sin_y = math.sin(yaw)
+        rot_y = np.array([[cos_y, 0, sin_y], [0, 1, 0], [-sin_y, 0, cos_y]])
+        corners_rot = corners_local @ rot_y.T
+
+        projected = []
+        for i in range(8):
+            X_c = x + corners_rot[i, 0]
+            Y_c = y + corners_rot[i, 1]
+            Z_c = z + corners_rot[i, 2]
+
+            Z_c = max(0.1, Z_c)
+
+            u = cx + (X_c * focal_px / Z_c)
+            v = cy + (Y_c * focal_px / Z_c)
+            projected.append((int(round(u)), int(round(v))))
+        return np.asarray(projected, dtype=int)
+
     camera_height_m = camera_params.get("camera_height_m", 1.6)
     tilt_deg = camera_params.get("tilt_deg", 10.0)
     tilt_rad = math.radians(tilt_deg)
@@ -32,21 +63,20 @@ def _project_box_to_image(box3d, camera_params):
     sin_y = math.sin(yaw)
 
     projected = []
-    for dx, dy, dz in corners_local:
+    for dx_c, dy_c, dz_c in corners_local:
         # Rotate around Z (up) axis
-        rot_x = dx * cos_y - dy * sin_y
-        rot_y = dx * sin_y + dy * cos_y
+        rot_x = dx_c * cos_y - dy_c * sin_y
+        rot_y = dx_c * sin_y + dy_c * cos_y
 
         # Absolute 3D world coordinates
         X = x + rot_x
         Y = y + rot_y
-        Z = z + dz
+        Z = z + dz_c
 
         # Prevent division by zero or behind-camera points
         X = max(0.5, X)
 
         # Inverse projection math (perfectly inverts MonocularLifter)
-        # u = cx - (Y * focal_px / X)
         u = cx - (Y * focal_px / X)
 
         # angle_y = atan2(camera_height_m - Z, X) - tilt_rad
